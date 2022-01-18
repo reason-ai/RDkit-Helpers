@@ -75,6 +75,7 @@ class DescriptorsFactory():
             DataFrame with added columns.
 
         '''
+        df = df.copy()
         if args: default = False
         if default: args = ['emw','n_ha','n_hd','mlp'] 
         else: args = args
@@ -98,13 +99,14 @@ class DescriptorsFactory():
 
 # Example usage          
 datafile = 'some csv file with a smiles col'
-df = pd.read_csv(datafile,index_col=0)
+df = pd.read_csv(datafile)
 PandasTools.AddMoleculeColumnToFrame(df,'smiles')
 
-desc_list = ['amw','n_ha','n_hd','mlp']
+desc_list = ['amw','n_ve']
 
 put = PandasUtils(df)
 new_df = put.add_descriptors_to_frame(desc_list)
+other_df = put.add_descriptors_to_frame()    #no arguments so default values returned
 
 
 
