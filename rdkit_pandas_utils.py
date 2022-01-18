@@ -11,23 +11,26 @@ from rdkit.Chem import Descriptors, PandasTools
 
 class PandasUtils():
     '''A utility class for RDkit to make it quicker and easier to perform
-    common tasks on a pandas dataframe. A pandas dataframe must be given as
-    input when initializing the class
+    common tasks on a pandas dataframe. 
     
     Attributes
     ----------
     descriptors_factory: DescriptorsFactory
         a factory to get common 2d molecular descriptors and add their
         respective columns to the dataframe
+        
+    Returns
+    ----------
+    df: A modified dataframe with added columns. Dataframe must be assigned
+    to a variable when calling any method
     '''
-    def __init__(self,df):
-        self.df = df.copy()
+    def __init__(self):
         self.descriptors_factory = DescriptorsFactory()
     
-    def add_descriptors_to_frame(self,descriptors=None,default=True):
-        return self.descriptors_factory.get_descriptors(self.df,
-                                                        descriptors,default)
-    
+    def add_descriptors_to_frame(self,df,descriptors=None,default=True):
+        return self.descriptors_factory.get_descriptors(df,descriptors,
+                                                      default)
+        
 
 class DescriptorsFactory():
     '''
@@ -65,7 +68,7 @@ class DescriptorsFactory():
         df : Pandas DataFrame
             DataFrame that columns are being added to.
         args : list
-            List of descriptors to add to dataframe.
+            List of descriptors strings to add to dataframe.
         default : bool
             Switch to determine whether default descriptors are returned.
 
@@ -98,15 +101,15 @@ class DescriptorsFactory():
 
 
 # Example usage          
-datafile = 'some csv file with a smiles col'
+datafile = 'some csv file with a smiles columns'
 df = pd.read_csv(datafile)
 PandasTools.AddMoleculeColumnToFrame(df,'smiles')
 
 desc_list = ['amw','n_ve']
 
-put = PandasUtils(df)
-new_df = put.add_descriptors_to_frame(desc_list)
-other_df = put.add_descriptors_to_frame()    #no arguments so default values returned
+put = PandasUtils()
+new_df = put.add_descriptors_to_frame(df,desc_list)
+other_df = put.add_descriptors_to_frame(df) #no arguments so default values returned
 
 
 
