@@ -7,7 +7,7 @@ Created on Mon Jan 17 13:00:28 2022
 import numpy as np
 import pandas as pd
 from rdkit import Chem
-from rdkit.Chem import Descriptors, PandasTools
+from rdkit.Chem import Descriptors, PandasTools, rdFingerprintGenerator
 
 class PandasUtils():
     '''A utility class for RDkit to make it quicker and easier to perform
@@ -26,10 +26,15 @@ class PandasUtils():
     '''
     def __init__(self):
         self.descriptors_factory = DescriptorsFactory()
+        self.fingerprint_factory = FingerprintFactory()
     
     def add_descriptors_to_frame(self,df,descriptors=None,default=True):
         return self.descriptors_factory.get_descriptors(df,descriptors,
                                                       default)
+    
+    def add_fingerprints_to_frame(self,df):
+        return self.fingerprint_factory.get_fingerprints(df,method=None,
+                                                         radius=None)
         
 
 class DescriptorsFactory():
@@ -99,17 +104,41 @@ class DescriptorsFactory():
                 return False
         return True
 
+class FingerprintFactory():
+    generators = {
+        'morgan': rdFingerprintGenerator.GetMorganGenerator,
+        'atom_pair': rdFingerprintGenerator.GetAtomPairGenerator,
+        'rdfp': rdFingerprintGenerator.GetRDKitFPGenerator}
+    
+    def __init__(self):
+        pass
+        
+    def get_fingerprints(self,df,method,radius,default=True):
+        df = df.copy()
+        if method: default = False
+        if default:
+            radius = 3
+            method = 'morgan'
+            generator = FingerprintFactory.generators[method](radius)
+        else: 
+            method = method
+            generator = FingerprintFactory[method]
+            
+        mols = [Chem.MolFromSmiles(row.smiles) for _,row in df.iterrows()]
+        fps = [np.array(generator.GetFingerprint(mol)) for mol in mols]
+        df['fp'] = fps
+        return df
+    
 
 # Example usage          
-datafile = 'some csv file with a smiles columns'
+datafile = 'some csv file with a smiles column'
 df = pd.read_csv(datafile)
 PandasTools.AddMoleculeColumnToFrame(df,'smiles')
 
-desc_list = ['amw','n_ve']
 
 put = PandasUtils()
-new_df = put.add_descriptors_to_frame(df,desc_list)
+new_df = put.add_descriptors_to_frame(df,['amw','n_ve'])
 other_df = put.add_descriptors_to_frame(df) #no arguments so default values returned
-
+fp_df = put.add_fingerprints_to_frame(df)
 
 
